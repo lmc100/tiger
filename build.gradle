@@ -1,0 +1,102 @@
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+    apply plugin: 'maven-publish'
+    apply plugin: 'jacoco'
+//    apply plugin: 'findbugs'
+//    apply plugin: 'pmd'
+
+    project.sourceCompatibility = 1.7
+    project.targetCompatibility = 1.7
+
+    def isRelease = project.hasProperty('isRelease') ? isRelease.toBoolean() : false
+    if (!isRelease) {
+      version += '-SNAPSHOT'
+    }
+
+    // add provided configuration for tools such as lombok
+    configurations {
+        provided
+    }
+
+    sourceSets.main.compileClasspath += [configurations.provided]
+    sourceSets.test.compileClasspath += [configurations.provided]
+    eclipse.classpath.plusConfigurations += [configurations.provided]
+    idea.module.scopes.PROVIDED.plus += [configurations.provided]
+
+    dependencies {
+        provided "org.projectlombok:lombok:${lombokVersion}" // compile-time only
+
+        compile "org.slf4j:slf4j-api:${slf4jVersion}"
+
+        testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+        testCompile "junit:junit:${junitVersion}"
+        testCompile "org.mockito:mockito-all:${mockitoVersion}"
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+//    pmd {
+//        toolVersion = pmdVersion
+//    }
+
+//    findbugs {
+//        toolVersion = findbugsVersion
+//    }
+
+//    tasks.withType(FindBugs) {
+//        reports {
+//            xml.enabled = false
+//            html.enabled = true
+//        }
+//    }
+
+    // output unchecked compile warnings
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Xlint:all' << '-Xlint:-processing'
+    }
+
+    javadoc {
+        classpath += configurations.provided
+    }
+
+    jacoco {
+        toolVersion = jacocoVersion
+    }
+
+    jacocoTestReport {
+        // Workaround for jacoco plugin's bug for not setting the sourceSets correctly by default
+        // When it is not set correctly, you will not be able to drill down the report to view
+        // source lines for coverage
+        additionalSourceDirs = files(sourceSets.main.allJava.srcDirs)
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    task ci {
+        dependsOn build, javadoc, jacocoTestReport
+    }
+}
