@@ -1,0 +1,15 @@
+dependencies {
+    compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    compile "org.mindrot:jbcrypt:${jbcryptVersion}"
+    compile "com.google.guava:guava:${guavaVersion}"
+    compile "javax.servlet:javax.servlet-api:${javaxServletApiVersion}"
+    compile "org.eclipse.jetty:jetty-util:${jettyUtilVersion}"
+    compile "com.sun.jersey:jersey-core:${jerseyCoreVersion}"
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Tiger util'
+        attributes 'Implementation-Version': version
+    }
+}
