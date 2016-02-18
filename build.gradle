@@ -33,7 +33,7 @@ subprojects {
     idea.module.scopes.PROVIDED.plus += [configurations.provided]
 
     dependencies {
-        provided "org.projectlombok:lombok:${lombokVersion}" // compile-time only
+        compile "org.projectlombok:lombok:${lombokVersion}" // compile-time only
 
         compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
@@ -98,5 +98,32 @@ subprojects {
 
     task ci {
         dependsOn build, javadoc, jacocoTestReport
+    }
+	
+	publish {
+        dependsOn ci
+    }
+
+    publishing {
+        publications {
+            main(MavenPublication) {
+                from components.java
+                artifact sourcesJar {
+                    classifier 'sources'
+                }
+                artifact javadocJar {
+                    classifier 'javadoc'
+                }
+            }
+        }
+        repositories {
+            maven {
+				url isRelease.toBoolean() ? "${repository}/libs-release-local" : "${repository}/libs-snapshot-local"
+                credentials {
+                    username = repoUser
+                    password = repoPwd
+                }
+            }
+        }
     }
 }
