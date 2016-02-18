@@ -10,5 +10,7 @@ jar {
     manifest {
         attributes 'Implementation-Title': 'Tiger core'
         attributes 'Implementation-Version': version
+        attributes 'Main-Class': 'com.tiger.driver.Main'
+        attributes 'Class-Path': configurations.compile.collect { it.getName() }.join(' ')
     }
 }
